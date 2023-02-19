@@ -7,6 +7,7 @@ from metavision_core.event_io import EventsIterator, LiveReplayEventsIterator
 from metavision_sdk_core import PeriodicFrameGenerationAlgorithm, ColorPalette
 from metavision_sdk_ui import EventLoop, BaseWindow, MTWindow, UIAction, UIKeyEvent
 import argparse
+import time
 
 #test
 def parse_args():
@@ -17,6 +18,8 @@ def parse_args():
         '-s', '--serial-number', dest='input_path', default="",
         help="Camera serial number. If not specified, the live stream of the first available camera is used.")
 
+    parser.add_argument(
+        '-o', '--output-dir', default="", help="Directory where to create RAW file with recorded event data")
     args = parser.parse_args()
     return args
 
