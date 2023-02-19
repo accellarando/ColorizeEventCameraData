@@ -32,15 +32,22 @@ def main():
     i_trigger_in.enable(0); #evk3's trigger in is on channel 0
     #Will stream data as normal, but inject "external event" data into the event stream.
     #Todo: write a Python script to try to decode this data. 
-    #Reassemble into frames maybe? (for DNN training purposes)
+    #See the OnDemandFrameGenerationAlgorithm class - this may be helpful in reconstructing these events into frames.
 
-    # Events iterator on the device
+    #Start the recording
+    if device.get_i_events_stream():
+        log_path = "recording_" + time.strftime("%y%m%d_%H%M%S", time.localtime()) + ".raw"
+        if args.output_dir != "":
+            log_path = os.path.join(args.output_dir, log_path)
+        print(f'Recording to {log_path}')
+        device.get_i_events_stream().log_raw_data(log_path)
+
+    # Events iterator on Device
     mv_iterator = EventsIterator.from_device(device=device)
     height, width = mv_iterator.get_size()  # Camera Geometry
 
     # Window - Graphical User Interface
-    title = "Metavision Sync" 
-    with MTWindow(title=title, width=width, height=height,
+    with MTWindow(title="Metavision Events Viewer", width=width, height=height,
                   mode=BaseWindow.RenderMode.BGR) as window:
         def keyboard_cb(key, scancode, action, mods):
             if key == UIKeyEvent.KEY_ESCAPE or key == UIKeyEvent.KEY_Q:
@@ -49,21 +56,22 @@ def main():
         window.set_keyboard_callback(keyboard_cb)
 
         # Event Frame Generator
-        event_frame_gen = PeriodicFrameGenerationAlgorithm(sensor_width=width, sensor_height=height, fps=25,
-                                                           palette=ColorPalette.Dark)
+        event_frame_gen = PeriodicFrameGenerationAlgorithm(sensor_width=width, sensor_height=height, fps=25, palette=ColorPalette.Dark)
 
         def on_cd_frame_cb(ts, cd_frame):
             window.show_async(cd_frame)
 
         event_frame_gen.set_output_callback(on_cd_frame_cb)
 
+        # Process events
         for evs in mv_iterator:
-            # Dispatch system events to the window in order to catch keystrokes
-            # This won't be available on the slave if the master is not streaming at the same time
-            # (because in that case, the slave is in waiting mode with no event generated)
+            # Dispatch system events to the window
             EventLoop.poll_and_dispatch()
             event_frame_gen.process_events(evs)
+
             if window.should_close():
+                # Stop the recording
+                device.get_i_events_stream().stop_log_raw_data()
                 break
 
 
