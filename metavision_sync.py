@@ -8,7 +8,7 @@ from metavision_sdk_core import PeriodicFrameGenerationAlgorithm, ColorPalette
 from metavision_sdk_ui import EventLoop, BaseWindow, MTWindow, UIAction, UIKeyEvent
 import argparse
 
-
+#test
 def parse_args():
     """Parse command line arguments."""
     parser = argparse.ArgumentParser(description='Metavision camera synchronization sample.',
