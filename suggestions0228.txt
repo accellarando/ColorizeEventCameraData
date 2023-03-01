@@ -1,0 +1,4 @@
+* Black border on the color wheel
+* Simplify - start with black and white (1/2 and 1/2), then start adding a new color, etc.
+	- Black, white
+	- black, white, black, yellow
