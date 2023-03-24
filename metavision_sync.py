@@ -37,6 +37,9 @@ def main():
     #Todo: write a Python script to try to decode this data. 
     #See the OnDemandFrameGenerationAlgorithm class - this may be helpful in reconstructing these events into frames.
 
+    #collect paired RGB-Event frames (by integration using closely matched time-stamps).
+    #Its ok if there is motion blur. Train a network to predict RGB from event-frames. 
+
     #Start the recording
     if device.get_i_events_stream():
         log_path = "recording_" + time.strftime("%y%m%d_%H%M%S", time.localtime()) + ".raw"
