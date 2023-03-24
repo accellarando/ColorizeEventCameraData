@@ -21,9 +21,10 @@ dirname = "/sdcard"
 imgCounter = 0
 
 while True:
-    if pin.value() != prevVal:
+    thisVal = pin.value()
+    if thisVal != prevVal:
         img = sensor.snapshot()
         filename = '{}/img{:08d}.jpg'.format(dirname, imgCounter)
         img.save(filename)         # Take a picture and save the image.
         imgCounter += 1
-    prevVal = pin.value();
+    prevVal = thisVal
