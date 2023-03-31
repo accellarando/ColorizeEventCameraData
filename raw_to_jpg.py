@@ -1,6 +1,8 @@
 
-from metavision_core.event_io import EventsIterator
+# from metavision_core.event_io import EventsIterator
+from metavision_core.event_io import RawReader
 from metavision_sdk_core import OnDemandFrameGenerationAlgorithm
+import metavision_sdk_core as sdk
 
 import argparse
 import os
@@ -33,8 +35,10 @@ def main():
 
 
     # ? - args
-    mv_iterator = EventsIterator(input_path=args.input_path, delta_t=args.delta_t, start_ts=args.start_ts,
-                                 max_duration=args.max_duration)
+    # mv_iterator = EventsIterator(input_path=args.input_path, delta_t=1, start_ts=0,
+                                 # max_duration=10)
+    mv_iterator = RawReader(args.input_path)
+    # mv_iterator.open()
     
     
     # Event Frame Generator
@@ -42,24 +46,29 @@ def main():
     # External trigger events to mark the start/stop points -> EXT_TRIGGER = 1010
     # OnDemandFrameGenerationAlgorithm - manually control frame generation timestamps
 
-    on_demand_gen = OnDemandFrameGenerationAlgorithm(sensor_width=640, sensor_height=480, accumulation_time_us=50000)
+    on_demand_gen = OnDemandFrameGenerationAlgorithm(width=640, height=480, accumulation_time_us=50000)
 
     # For each word in the recording
-    for evs in mv_iterator:
+
+    print(mv_iterator)
+    mv_iterator.load_delta_t(1)
+    print(mv_iterator)
+    events = mv_iterator.get_ext_trigger_events()
+    print(events)
+    for evs in events:
+    # while True:
+
         # Check if the event is an EXT_TRIGGER (1010) event
-        if evs.type() == 0xA: #sdk.EventType.EXT_TRIGGER
-            # Extract the timestamp from the event
-            timestamp = evs.t()
+        # Extract the timestamp from the event
+        timestamp = evs.timestamp()
 
-            # Generate a frame using the timestamp
-            on_demand_gen.generate(timestamp)
+        # Generate a frame using the timestamp
+        on_demand_gen.generate(timestamp)
 
-            # Get the generated frame and save it as a JPG file
-            frame = on_demand_gen.get_latest_frame()
-            frame.save_to_jpg(output_file+"frame{}".format(frame.timestamp()))
+        # Get the generated frame and save it as a JPG file
+        frame = on_demand_gen.get_latest_frame()
+        frame.save_to_jpg(output_file+"frame{}".format(frame.timestamp()))
 
-    # Stop the frame generator
-    on_demand_gen.stop()
 
 
 if __name__ == "__main__":
