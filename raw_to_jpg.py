@@ -2,7 +2,9 @@
 from metavision_core.event_io import EventsIterator
 from metavision_sdk_core import OnDemandFrameGenerationAlgorithm
 
+import argparse
 import os
+import time
 from tqdm import tqdm
 
 # fix args
