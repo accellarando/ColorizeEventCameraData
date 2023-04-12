@@ -12,17 +12,19 @@ def main():
     args = parse_args()
 
     counter = 0
+    word = 0
     with open(args.input_path, 'rb') as f:
         while True:
-            data = f.read(8) # read 64 bits (8 bytes) at a time
+            data = f.read(4) # read 64 bits (8 bytes) at a time
             if not data: # end of file
                 break
             word = int.from_bytes(data, byteorder='big', signed=False) # convert bytes to integer
-            # print(word)
-            if (word & 0xF000000000000000) == 0xA000000000000000: # check first 4 bits
+            # print(str(word)+"\n")
+            if (word & 0xF0000000) == 0xA0000000: # check first 4 bits
                 # print("Event Detected")
                 counter += 1
 
-    print(f"Total events detected: {counter}")
+    print(f"Total trigger events detected: {counter}")
+    print("Last word encountered: {0:b}".format(word))
 
 main()

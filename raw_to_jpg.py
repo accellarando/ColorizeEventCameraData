@@ -1,4 +1,3 @@
-
 from metavision_core.event_io import EventsIterator
 from my_raw_reader import RawReader
 # from metavision_core.event_io import RawReader
@@ -41,9 +40,9 @@ def main():
 
 
     # ? - args
-    events_iterator = EventsIterator(input_path=args.input_path, delta_t=1000000, start_ts=0,
-                                 max_duration=1e6*60)
-    mv_iterator = RawReader(record_base=args.input_path)
+    events_iterator = EventsIterator(input_path=args.input_path, delta_t=10000000, start_ts=0,
+                                 max_duration=1e9*60)
+    mv_iterator = RawReader(record_base=args.input_path,max_events=100000000)
     # mv_iterator.open()
 
 
@@ -52,14 +51,14 @@ def main():
     # External trigger events to mark the start/stop points -> EXT_TRIGGER = 1010
     # OnDemandFrameGenerationAlgorithm - manually control frame generation timestamps
 
-    on_demand_gen = OnDemandFrameGenerationAlgorithm(width=640, height=480, accumulation_time_us=100000)
+    on_demand_gen = OnDemandFrameGenerationAlgorithm(width=640, height=480, accumulation_time_us=166000) #should really be 166666 - giving some wiggle room jic
 
     # frame_period_us = 25000
     # next_processing_ts = frame_period_us
     frame = np.zeros((480, 640, 3), np.uint8)
+    '''
     for evs in events_iterator:
         on_demand_gen.process_events(evs)  # Feed events to the frame generator
-        '''
         ts = evs["t"][-1] # Trigger new frame generations as long as the last event is high enough
         while(ts > next_processing_ts):
             on_demand_gen.generate(next_processing_ts, frame)
@@ -70,18 +69,24 @@ def main():
     imgNames = os.listdir(args.rgb_dir)
     delays = []
     imgs = 0
-    for name in imgNames:
+    for name in imgNames: 
         imgParts = name.split("-")
         imgNo = int(imgParts[0][3:])
         if imgNo != imgs:
-            delays.append(-1)
-        delays.append(imgParts[1].split(".")[0])
-        imgs += 1
+            delays.append(-1) 
+            imgs += 1
+        delays.append(imgParts[1].split(".")[0]) 
+        imgs += 1 
+
+    print(delays)
 
     # For each word in the recording
     counter = 0
+    timestamp = 0
+    offset = 15000
     while not mv_iterator.is_done():
-        mv_iterator.load_n_events(10000) 
+        evi_events = mv_iterator.load_n_events(10000000) 
+        on_demand_gen.process_events(evi_events)
         events = mv_iterator.get_ext_trigger_events()
         for evs in events:
             imgDelay = delays[counter]
@@ -89,14 +94,10 @@ def main():
                 counter += 1
                 continue
             # counter += 1
-            # print(evs)
             timestamp = evs[1]
-            print(timestamp)
-            print(timestamp+int(imgDelay))
-            print("\n")
 
             # Generate a frame using the timestamp plus us differential from the rgb image
-            on_demand_gen.generate(timestamp+int(imgDelay),frame)
+            on_demand_gen.generate(timestamp,frame)
             # print(frame)
 
             # Get the generated frame and save it as a JPG file
@@ -106,6 +107,7 @@ def main():
             counter += 1
         mv_iterator.clear_ext_trigger_events()
     # print("events: "+str(counter))
+    print(timestamp)
     '''
 
     print(mv_iterator) 
