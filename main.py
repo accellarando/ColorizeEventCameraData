@@ -20,21 +20,23 @@ os.mount(sd,"/sdcard")
 dirname = "/sdcard"
 imgCounter = 0
 img = sensor.snapshot()
+dt = 0
 
 def image_snapshot(arg):
     #print(arg)
 
-    global imgCounter, img, dirname, sd
+    global imgCounter, img, dirname, sd, dt
 
     try:
         #suffix = "pos" if pin.value() else "neg"
         #print(suffix)
         img = sensor.snapshot()
-        filename = '{}/img{:05d}.jpg'.format(dirname, imgCounter)
+        filename = '{}/img{:04d}-{:04d}.gif'.format(dirname, imgCounter, pyb.micros()-dt)
         #print(filename)
         img.save(filename)         # Take a picture and save the image.
     except:
-       pass
+        pass
+        #print("Exception")
     imgCounter += 1
 
 
@@ -42,7 +44,8 @@ def image_snapshot(arg):
 
 def capture_image(lineNumber):
     #print(lineNumber)
-    global imgCounter
+    global imgCounter, dt
+    dt = pyb.micros()
     try:
         micropython.schedule(image_snapshot, lineNumber)
     except:
